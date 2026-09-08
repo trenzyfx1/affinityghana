@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AffinityGhana - PIN</title>
+<link rel="icon" type="image/png" href="assets/logo.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+  <div class="page pin-page">
+
+    <a href="phone-number.html" class="back-btn">‹</a>
+
+    <svg class="blob-svg-bg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="blobGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#e2231a"/>
+          <stop offset="50%" stop-color="#f5821f"/>
+          <stop offset="100%" stop-color="#ffd23f"/>
+        </linearGradient>
+      </defs>
+      <circle cx="100" cy="55" r="45" fill="url(#blobGrad2)"/>
+      <circle cx="145" cy="100" r="45" fill="url(#blobGrad2)"/>
+      <circle cx="100" cy="145" r="45" fill="url(#blobGrad2)"/>
+      <circle cx="55" cy="100" r="45" fill="url(#blobGrad2)"/>
+    </svg>
+
+    <div class="illustration-wrap" style="margin-top:26px;">
+      <div class="illustration-circle plain">
+        <img src="assets/icon-pin.png" alt="">
+      </div>
+    </div>
+
+    <h1 class="title">Welcome to Affinity</h1>
+    <p class="subtitle">Log in to continue</p>
+
+    <label class="field-label">PIN</label>
+    <div class="pin-input-row">
+      <input type="password" id="pinInput" class="pin-field" inputmode="numeric" maxlength="6" autocomplete="off">
+      <button class="eye-toggle" id="pinEyeToggle" type="button">👁</button>
+    </div>
+    <div class="pin-count"><span id="pinCount">0</span>/6</div>
+
+    <button class="btn-primary" id="pinLoginBtn">Log in</button>
+
+    <div class="forgot-pin">Forgot PIN?</div>
+
+  </div>
+</div>
+
+<script>
+  var pinInput = document.getElementById('pinInput');
+  var pinCount = document.getElementById('pinCount');
+  var pinEyeToggle = document.getElementById('pinEyeToggle');
+  var pinLoginBtn = document.getElementById('pinLoginBtn');
+
+  pinInput.addEventListener('input', function () {
+    pinInput.value = pinInput.value.replace(/\D/g, '');
+    pinCount.textContent = pinInput.value.length;
+  });
+
+  var pinVisible = false;
+  pinEyeToggle.addEventListener('click', function () {
+    pinVisible = !pinVisible;
+    pinInput.type = pinVisible ? 'text' : 'password';
+    pinEyeToggle.textContent = pinVisible ? '🙈' : '👁';
+  });
+
+  pinLoginBtn.addEventListener('click', function () {
+    if (pinInput.value.length < 4) {
+      pinInput.parentElement.style.borderColor = '#c0392b';
+      setTimeout(function () { pinInput.parentElement.style.borderColor = ''; }, 900);
+      return;
+    }
+    window.location.href = 'otp.html';
+  });
+</script>
+
+</body>
+</html>

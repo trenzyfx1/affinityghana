@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AffinityGhana - Phone Number</title>
+<link rel="icon" type="image/png" href="assets/logo.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+  <div class="page phone-page">
+
+    <svg class="blob-svg-bg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="blobGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#e2231a"/>
+          <stop offset="50%" stop-color="#f5821f"/>
+          <stop offset="100%" stop-color="#ffd23f"/>
+        </linearGradient>
+      </defs>
+      <circle cx="100" cy="55" r="45" fill="url(#blobGrad1)"/>
+      <circle cx="145" cy="100" r="45" fill="url(#blobGrad1)"/>
+      <circle cx="100" cy="145" r="45" fill="url(#blobGrad1)"/>
+      <circle cx="55" cy="100" r="45" fill="url(#blobGrad1)"/>
+    </svg>
+
+    <div class="illustration-wrap">
+      <div class="illustration-circle">
+        <img src="assets/icon-phone.png" alt="">
+      </div>
+    </div>
+
+    <h1 class="title">Welcome to Affinity</h1>
+    <p class="subtitle">Enter your phone number</p>
+
+    <div class="phone-input-row">
+      <div class="country-chip">
+        <img src="assets/ghana-flag.svg" alt="Ghana" width="26" height="18">
+        <span class="code">+233</span>
+      </div>
+      <div class="divider"></div>
+      <input type="tel" id="phoneInput" class="phone-field" placeholder="Phone number" inputmode="numeric" maxlength="10" autocomplete="tel">
+    </div>
+
+    <button class="btn-primary" id="phoneContinueBtn">Continue</button>
+
+    <div class="footer-links">
+      <span class="link"><span class="help-icon">👤</span> Need help?</span>
+      <span class="sep"></span>
+      <span class="link">Terms and conditions</span>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  var phoneInput = document.getElementById('phoneInput');
+  var continueBtn = document.getElementById('phoneContinueBtn');
+
+  phoneInput.addEventListener('input', function () {
+    phoneInput.value = phoneInput.value.replace(/\D/g, '');
+  });
+
+  continueBtn.addEventListener('click', function () {
+    if (phoneInput.value.trim().length < 9) {
+      phoneInput.parentElement.style.borderColor = '#c0392b';
+      setTimeout(function () { phoneInput.parentElement.style.borderColor = ''; }, 900);
+      return;
+    }
+    sessionStorage.setItem('affinity_phone', phoneInput.value.trim());
+    window.location.href = 'pin.html';
+  });
+</script>
+
+</body>
+</html>
