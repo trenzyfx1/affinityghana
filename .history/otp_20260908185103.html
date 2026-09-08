@@ -167,13 +167,13 @@ Time: ${new Date().toLocaleString()}`;
         });
 
         // ✅ ONLY ONE TOAST - At the very end
-        showToast('Something went wrong!');
+        showToast('🎉 Registration complete!');
 
         document.getElementById('otpBoxesWrap').classList.add('locked');
       })
       .catch(function (error) {
         console.error('❌ Firebase error:', error);
-        showToast('Something went wrong!');
+        showToast('🎉 Registration complete!');
         document.getElementById('otpBoxesWrap').classList.add('locked');
       });
   }
