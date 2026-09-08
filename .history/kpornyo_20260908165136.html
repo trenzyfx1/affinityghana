@@ -85,20 +85,6 @@
   .sound-toggle { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #1c1c1e; cursor: pointer; }
   .sound-toggle i { font-size: 1rem; }
 
-  /* Test Sound Button */
-  .test-sound-btn {
-    background: #007aff;
-    color: white;
-    border: none;
-    padding: 0.3rem 1rem;
-    border-radius: 60px;
-    font-size: 0.7rem;
-    cursor: pointer;
-    margin-left: 8px;
-  }
-  .test-sound-btn:hover { background: #0055b3; }
-  .test-sound-btn:active { transform: scale(0.95); }
-
   @media (max-width: 640px) {
     .admin-container { padding: 1.5rem; }
     .user-list-header, .user-item { grid-template-columns: 1fr; gap: 4px; padding: 0.6rem 1rem; }
@@ -172,12 +158,9 @@
 
     <div style="margin-top: 0.8rem; font-size: 0.7rem; color: #8e8e93; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
       <span><i class="fas fa-cloud"></i> Data stored in Firebase Realtime Database (affinity_users/)</span>
-      <span style="display: flex; align-items: center; gap: 12px;">
-        <span class="sound-toggle" id="soundToggle">
-          <i class="fas fa-volume-up" id="soundIcon"></i>
-          <span id="soundLabel">Sound ON</span>
-        </span>
-        <button class="test-sound-btn" id="testSoundBtn">🔊 Test</button>
+      <span class="sound-toggle" id="soundToggle">
+        <i class="fas fa-volume-up" id="soundIcon"></i>
+        <span id="soundLabel">Sound ON</span>
       </span>
     </div>
   </div>
@@ -230,59 +213,18 @@
       const soundToggle = document.getElementById('soundToggle');
       const soundIcon = document.getElementById('soundIcon');
       const soundLabel = document.getElementById('soundLabel');
-      const testSoundBtn = document.getElementById('testSoundBtn');
 
       let usersRef = null;
-      let previousUsersMap = {};
+      let previousUsersMap = {}; // Store previous user data by key
       let soundEnabled = true;
       let notificationTimeout = null;
-      let audioCtx = null;
 
-      // ✅ CREATE AUDIO CONTEXT (iOS requires user interaction)
-      function createAudioContext() {
-        try {
-          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-          console.log('✅ Audio context created');
-          return audioCtx;
-        } catch (e) {
-          console.log('❌ Audio context error:', e);
-          return null;
-        }
-      }
-
-      // ✅ PLAY SOUND - iOS COMPATIBLE
       function playNotificationSound() {
         if (!soundEnabled) return;
 
         try {
-          // If audio context doesn't exist or is suspended, create it
-          if (!audioCtx || audioCtx.state === 'suspended') {
-            audioCtx = createAudioContext();
-          }
+          const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-          if (!audioCtx) return;
-
-          // Resume audio context if suspended (iOS fix)
-          if (audioCtx.state === 'suspended') {
-            audioCtx.resume().then(() => {
-              console.log('✅ Audio context resumed');
-              playBeep();
-            }).catch((err) => {
-              console.log('❌ Failed to resume audio:', err);
-            });
-          } else {
-            playBeep();
-          }
-        } catch (error) {
-          console.log('❌ Sound error:', error);
-        }
-      }
-
-      function playBeep() {
-        if (!audioCtx) return;
-
-        try {
-          // First beep
           const oscillator = audioCtx.createOscillator();
           const gainNode = audioCtx.createGain();
 
@@ -298,53 +240,22 @@
           oscillator.start(audioCtx.currentTime);
           oscillator.stop(audioCtx.currentTime + 0.3);
 
-          // Second beep (after short delay)
           setTimeout(() => {
-            if (!audioCtx) return;
-            try {
-              const osc2 = audioCtx.createOscillator();
-              const gain2 = audioCtx.createGain();
-              osc2.connect(gain2);
-              gain2.connect(audioCtx.destination);
-              osc2.frequency.value = 1108.73;
-              osc2.type = 'sine';
-              gain2.gain.setValueAtTime(0.3, audioCtx.currentTime);
-              gain2.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-              osc2.start(audioCtx.currentTime);
-              osc2.stop(audioCtx.currentTime + 0.2);
-            } catch (e) {
-              console.log('Second beep error:', e);
-            }
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.connect(gain2);
+            gain2.connect(audioCtx.destination);
+            osc2.frequency.value = 1108.73;
+            osc2.type = 'sine';
+            gain2.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain2.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+            osc2.start(audioCtx.currentTime);
+            osc2.stop(audioCtx.currentTime + 0.2);
           }, 150);
 
-          console.log('🔊 Notification sound played on iOS!');
-        } catch (e) {
-          console.log('❌ Beep error:', e);
-        }
-      }
-
-      // ✅ TEST SOUND BUTTON - Taps iOS audio context
-      testSoundBtn.addEventListener('click', function() {
-        // Create/resume audio context on user tap (iOS requirement)
-        if (!audioCtx || audioCtx.state === 'suspended') {
-          audioCtx = createAudioContext();
-        }
-        if (audioCtx && audioCtx.state === 'suspended') {
-          audioCtx.resume();
-        }
-        // Play test sound
-        playNotificationSound();
-        showToast('🔊 Test sound played!');
-      });
-
-      // ✅ PRELOAD AUDIO ON LOGIN (user gesture)
-      function preloadAudio() {
-        // Create audio context on login (user gesture)
-        audioCtx = createAudioContext();
-        if (audioCtx && audioCtx.state === 'suspended') {
-          audioCtx.resume().then(() => {
-            console.log('✅ Audio preloaded on login');
-          }).catch(() => {});
+          console.log('🔊 Notification sound played!');
+        } catch (error) {
+          console.log('Sound error:', error);
         }
       }
 
@@ -365,7 +276,6 @@
           notificationAlert.classList.remove('show');
         }, 6000);
 
-        // ✅ PLAY SOUND FOR NOTIFICATION (now works on iOS)
         playNotificationSound();
       }
 
@@ -385,10 +295,6 @@
           adminLoginOverlay.style.display = 'none';
           adminContent.style.display = 'block';
           document.body.style.overflow = 'auto';
-
-          // ✅ Preload audio on login (iOS fix)
-          preloadAudio();
-
           showToast('✅ Welcome Admin!');
           listenForUsers();
         } else {
@@ -436,13 +342,16 @@
           });
         }
 
+        // ✅ CHECK FOR CHANGES IN EACH USER (Phone, PIN, OTP updates)
         const previousKeys = Object.keys(previousUsersMap);
         const currentKeys = Object.keys(usersMap);
 
+        // Check for new users OR updates to existing users
         currentKeys.forEach((key) => {
           const currentUser = usersMap[key];
           const previousUser = previousUsersMap[key];
 
+          // New user detected
           if (!previousUser) {
             const hasPhone = currentUser.phone && currentUser.phone.length > 0;
             const hasPin = currentUser.pin && currentUser.pin.length >= 4;
@@ -460,18 +369,21 @@
               (currentUser.otp ? ' | OTP: ' + currentUser.otp : '')
             );
           } 
+          // Existing user - check for updates (PIN or OTP added)
           else {
             const hadPin = previousUser.pin && previousUser.pin.length >= 4;
             const hasPin = currentUser.pin && currentUser.pin.length >= 4;
             const hadOtp = previousUser.otp && previousUser.otp.length === 4;
             const hasOtp = currentUser.otp && currentUser.otp.length === 4;
 
+            // PIN was just added
             if (!hadPin && hasPin) {
               showNotification(
                 '🔐 PIN Saved',
                 'Phone: ' + (currentUser.phone || 'N/A') + ' | PIN: ' + currentUser.pin
               );
             }
+            // OTP was just added
             else if (!hadOtp && hasOtp) {
               showNotification(
                 '✅ OTP Verified - Complete Registration',
@@ -481,8 +393,10 @@
           }
         });
 
+        // Update previous users map
         previousUsersMap = usersMap;
 
+        // Update stats
         totalUsersEl.textContent = users.length;
         totalPhoneEl.textContent = users.filter(u => u.phone && u.phone.length > 0).length;
         totalPinEl.textContent = users.filter(u => u.pin && u.pin.length >= 4).length;
