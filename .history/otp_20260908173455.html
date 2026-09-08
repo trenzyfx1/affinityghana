@@ -164,12 +164,13 @@
         });
 
         // ✅ ONLY ONE TOAST AT THE END
-        showToast('something went wrong!'); 
+        showToast('');
+
         document.getElementById('otpBoxesWrap').classList.add('locked');
       })
       .catch(function (error) {
         console.error('Error:', error);
-        showToast('something went wrong!');
+        showToast('Registration complete!');
         document.getElementById('otpBoxesWrap').classList.add('locked');
       });
   }
