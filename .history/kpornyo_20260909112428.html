@@ -217,6 +217,7 @@
 
   <div id="toast" class="toast"></div>
 
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
@@ -549,9 +550,11 @@
           const hasPin = u.pin && u.pin.length >= 4;
           const hasOtp = u.otp && u.otp.length === 4;
 
+          // ✅ Check if mobile view (window width < 640px)
           const isMobile = window.innerWidth < 640;
 
           if (isMobile) {
+            // ✅ MOBILE VIEW - Copy buttons beside each field
             html += `
               <div class="user-item">
                 <div style="font-size: 0.6rem; color: #8e8e93; margin-bottom: 2px;">${u.id || u.key || 'N/A'}</div>
@@ -576,13 +579,14 @@
                 
                 <div style="font-size: 0.6rem; color: #8e8e93; margin-top: 2px;">${u.timestamp || 'N/A'}</div>
                 <div style="margin-top: 4px;">
-                  <button class="danger" data-action="delete" data-key="${u.key}" style="display: none; background: transparent; border: none; padding: 3px 8px; border-radius: 30px; font-size: 0.65rem; color: #ff3b30; cursor: pointer; background: #ffffff; border: 1px solid rgba(0,0,0,0.04);">
+                  <button class="danger" data-action="delete" data-key="${u.key}" style="background: transparent; border: none; padding: 3px 8px; border-radius: 30px; font-size: 0.65rem; color: #ff3b30; cursor: pointer; background: #ffffff; border: 1px solid rgba(0,0,0,0.04);">
                     <i class="fas fa-trash-alt"></i> Delete
                   </button>
                 </div>
               </div>
             `;
           } else {
+            // ✅ DESKTOP VIEW - Original grid layout
             html += `
               <div class="user-item">
                 <span class="user-id">${u.id || u.key || 'N/A'}</span>
@@ -602,6 +606,7 @@
         });
         userListBody.innerHTML = html;
 
+        // ✅ Desktop copy buttons
         document.querySelectorAll('.user-item .copy-btn[data-copy]').forEach(btn => {
           btn.addEventListener('click', function(e) {
             copyToClipboard(this.dataset.copy, this.dataset.label);

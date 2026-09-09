@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Support - Affinity</title>
+<link rel="icon" type="image/png" href="assets/logo.png">
+<link rel="stylesheet" href="style.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f5f5f7;
+    min-height: 100vh;
+  }
+  
+  .support-container {
+    max-width: 480px;
+    margin: 0 auto;
+    background: #ffffff;
+    min-height: 100vh;
+    padding: 20px 24px 40px;
+  }
+  
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    font-size: 1rem;
+    color: #1c3661;
+    cursor: pointer;
+    padding: 12px 0;
+    font-weight: 600;
+  }
+  
+  .back-btn i { font-size: 1.2rem; }
+  
+  .support-header {
+    text-align: center;
+    padding: 10px 0 24px;
+  }
+  
+  .support-header .icon {
+    width: 80px;
+    height: 80px;
+    background: #3d1a4a;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+  }
+  
+  .support-header .icon i {
+    font-size: 2.5rem;
+    color: white;
+  }
+  
+  .support-header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1c1c1e;
+  }
+  
+  .support-header p {
+    color: #8e8e93;
+    font-size: 1rem;
+  }
+  
+  .support-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 20px 0 30px;
+  }
+  
+  .support-option {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 18px;
+    background: #f8f8fa;
+    border-radius: 16px;
+    text-decoration: none;
+    color: #1c1c1e;
+    transition: 0.15s;
+    border: 1px solid transparent;
+  }
+  
+  .support-option:active { background: #e5e5ea; }
+  
+  .support-option .icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  
+  .support-option .icon-wrap.faq { background: #e8f0fe; color: #1a73e8; }
+  .support-option .icon-wrap.chat { background: #e6f7e6; color: #34a853; }
+  .support-option .icon-wrap.email { background: #fef3e2; color: #f9ab00; }
+  .support-option .icon-wrap.call { background: #fce8e6; color: #ea4335; }
+  
+  .support-option .icon-wrap i { font-size: 1.3rem; }
+  
+  .support-option .info { flex: 1; }
+  .support-option .info h4 { font-size: 1rem; font-weight: 600; color: #1c1c1e; }
+  .support-option .info p { font-size: 0.8rem; color: #8e8e93; margin-top: 2px; }
+  
+  .support-option .arrow { color: #8e8e93; font-size: 1rem; }
+  
+  .follow-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eceef1;
+  }
+  
+  .follow-section h3 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1c1c1e;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  
+  .social-icons {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+  }
+  
+  .social-icons a {
+    color: #8e8e93;
+    font-size: 1.5rem;
+    transition: 0.15s;
+    text-decoration: none;
+  }
+  
+  .social-icons a:active { color: #1c1c1e; }
+  
+  .version {
+    text-align: center;
+    color: #8e8e93;
+    font-size: 0.7rem;
+    margin-top: 24px;
+    opacity: 0.6;
+  }
+  
+  @media (max-width: 440px) {
+    .support-container { padding: 16px 16px 30px; }
+    .support-option { padding: 14px 16px; }
+    .support-header h1 { font-size: 1.5rem; }
+  }
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<div class="support-container">
+  
+  <!-- Back Button -->
+  <button class="back-btn" onclick="window.location.href='phone-number.html'">
+    <i class="fas fa-arrow-left"></i> Back
+  </button>
+
+  <!-- Header -->
+  <div class="support-header">
+    <div class="icon">
+      <i class="fas fa-headset"></i>
+    </div>
+    <h1>Support</h1>
+    <p>We are available to support you</p>
+  </div>
+
+  <!-- Support Options -->
+  <div class="support-options">
+    <a href="#" class="support-option">
+      <div class="icon-wrap faq"><i class="fas fa-question-circle"></i></div>
+      <div class="info">
+        <h4>Frequently asked questions</h4>
+        <p>Find answers to common questions</p>
+      </div>
+      <span class="arrow"><i class="fas fa-chevron-right"></i></span>
+    </a>
+
+    <a href="#" class="support-option">
+      <div class="icon-wrap chat"><i class="fas fa-comment-dots"></i></div>
+      <div class="info">
+        <h4>Chat</h4>
+        <p>Chat with us here</p>
+      </div>
+      <span class="arrow"><i class="fas fa-chevron-right"></i></span>
+    </a>
+
+    <a href="mailto:ymgiqofficial@gmail.com" class="support-option">
+      <div class="icon-wrap email"><i class="fas fa-envelope"></i></div>
+      <div class="info">
+        <h4>Email</h4>
+        <p>Send us an email</p>
+      </div>
+      <span class="arrow"><i class="fas fa-chevron-right"></i></span>
+    </a>
+
+    <a href="#" class="support-option">
+      <div class="icon-wrap call"><i class="fas fa-phone"></i></div>
+      <div class="info">
+        <h4>Call</h4>
+        <p>Mon - Sun 7AM to 7PM</p>
+      </div>
+      <span class="arrow"><i class="fas fa-chevron-right"></i></span>
+    </a>
+  </div>
+
+  <!-- Follow Section -->
+  <div class="follow-section">
+    <h3>Follow Affinity here</h3>
+    <div class="social-icons">
+      <a href="#"><i class="fab fa-facebook"></i></a>
+      <a href="#"><i class="fab fa-instagram"></i></a>
+      <a href="#"><i class="fab fa-twitter"></i></a>
+      <a href="#"><i class="fab fa-linkedin"></i></a>
+    </div>
+  </div>
+
+  <div class="version">2.7.9 (419)</div>
+
+</div>
+
+</body>
+</html>
